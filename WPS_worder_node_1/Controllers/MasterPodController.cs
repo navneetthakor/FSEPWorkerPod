@@ -36,12 +36,12 @@ namespace WPS_worder_node_1.Controllers
                 //send notification to alerting system.
                 if (healthChecker.IsError)
                 {
-                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, false);
+                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, TypeOfEmail.EndpointErrorEmail);
                 }
                 // testing notification
                 else
                 {
-                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, true);
+                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, TypeOfEmail.EndpointTestEmail);
                 }
 
                 //preparing Response 
@@ -94,13 +94,13 @@ namespace WPS_worder_node_1.Controllers
                 if (healthChecker.IsError)
                 {
                     //send notification to alerting system.
-                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, false);
+                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, TypeOfEmail.EndpointErrorEmail);
 
                 }
                 else
                 {
                     // testing notification
-                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, true);
+                    MyKafkaProducer.NotifyKafka(serverModal, healthChecker, TypeOfEmail.EndpointTestEmail);
 
                     // setup hangfire recurring job
                     recurringJobManager.AddOrUpdate($"job_{serverModal.Client_id}&server_{serverModal.Server_id}", () => MySingleEndpointService.InvokCheck(serverModal, recurringJobManager), CronInterval.getCronInterval.GetValueOrDefault(serverModal.CheckFrequency));
@@ -177,8 +177,8 @@ namespace WPS_worder_node_1.Controllers
         }
 
         [HttpPost]
-        [Route("RegisterAPIFlow")]
-        public async Task<Response> RegisterAPIFlow(int client_id, int flow_id, [FromServices] ILogger _logger, [FromServices] IRecurringJobManager recurringJobManager)
+        [Route("v2/RegisterAPIFlow")]
+        public async Task<Response> RegisterAPIFlow2(int client_id, int flow_id, [FromServices] IRecurringJobManager recurringJobManager)
         {
             try
             {
@@ -211,24 +211,76 @@ namespace WPS_worder_node_1.Controllers
                 }
 
                 //Execute  Flow
-                FlowExecutor flowExecutor = new FlowExecutor(_logger);
+                FlowExecutor flowExecutor = new FlowExecutor();
                 FlowExecutionResult result = await flowExecutor.ExecuteFlowAsync(flowConfig);
 
                 //if errors occured during execution of this task 
                 if (result.Errors.Count > 0)
                 {
                     //report to user through kafka
-                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, true);
+                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, TypeOfEmail.APIFlowErrorEmail);
 
                     return new Response() { IsError = true, ErrorMessage = "Error executing request flow" };
                 }
                 else
                 {
                     //register reccuring job.
-                    recurringJobManager.AddOrUpdate($"job_{client_id}&flow_{flow_id}", () => MyAPIFlowService.InvokCheck(client_id, flow_id, _logger, recurringJobManager), CronInterval.getCronInterval.GetValueOrDefault(flowConfig.CheckFrequency));
+                    recurringJobManager.AddOrUpdate($"job_{client_id}&flow_{flow_id}", () => MyAPIFlowService.InvokCheck(client_id, flow_id, recurringJobManager), CronInterval.getCronInterval.GetValueOrDefault(flowConfig.CheckFrequency));
 
                     // send test notification
-                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, false);
+                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, TypeOfEmail.APIFlowTestEmail);
+
+                }
+
+                return new Response() { IsError = false, ErrorMessage = "success", Other = result };
+
+
+            }
+            catch (Exception ex)
+            {
+                Response response = new Response()
+                {
+                    StatusCode = 500,
+                    IsError = true,
+                    ErrorMessage = ex.Message
+                };
+                return response;
+            }
+
+        }
+
+
+        [HttpPost]
+        [Route("RegisterAPIFlow")]
+        public async Task<Response> RegisterAPIFlow(int client_id, int flow_id, [FromBody] FlowConfiguration flowConfig, [FromServices] IRecurringJobManager recurringJobManager)
+        {
+            try
+            {
+                //check if flowConfig is valid or not
+                if (flowConfig == null || flowConfig.Nodes == null || flowConfig.Edges == null)
+                {
+                    return new Response() { IsError = true, ErrorMessage =  "Invalid flow configuration" };
+                }
+
+                //Execute  Flow
+                FlowExecutor flowExecutor = new FlowExecutor();
+                FlowExecutionResult result = await flowExecutor.ExecuteFlowAsync(flowConfig);
+
+                //if errors occured during execution of this task 
+                if (result.Errors.Count > 0)
+                {
+                    //report to user through kafka
+                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, TypeOfEmail.APIFlowErrorEmail);
+
+                    return new Response() { IsError = true, ErrorMessage = "Error executing request flow" };
+                }
+                else
+                {
+                    //register reccuring job.
+                    recurringJobManager.AddOrUpdate($"job_{client_id}&flow_{flow_id}", () => MyAPIFlowService.InvokCheck(client_id, flow_id, recurringJobManager), CronInterval.getCronInterval.GetValueOrDefault(CheckFrequency.SIXH));
+
+                    // send test notification
+                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, TypeOfEmail.APIFlowTestEmail);
 
                 }
 

@@ -16,7 +16,7 @@ namespace WPS_worder_node_1.Controllers
         public async Task<Response> ProduceData() { 
             ServerModal serverModal = new ServerModal();
             HealthCheckerModal healthCheckerModal = new HealthCheckerModal();
-            MyKafkaProducer.NotifyKafka(serverModal, healthCheckerModal,true);
+            MyKafkaProducer.NotifyKafka(serverModal, healthCheckerModal,TypeOfEmail.EndpointTestEmail);
 
             return new Response { StatusCode = StatusCodes.Status200OK };
         }

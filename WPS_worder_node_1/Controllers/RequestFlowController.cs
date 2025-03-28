@@ -22,16 +22,16 @@ namespace WPS_worder_node_1.Controllers
         /// <summary>
         /// Logger instance
         /// </summary>
-        private readonly ILogger<RequestFlowController> _logger;
+        //private readonly ILogger<RequestFlowController> _logger;
 
         /// <summary>
         /// Constructor for thisController
         /// </summary>
         /// <param name="logger"></param>
-        public RequestFlowController(ILogger<RequestFlowController> logger)
-        {
-            _logger = logger;
-        }
+        //public RequestFlowController(ILogger<RequestFlowController> logger)
+        //{
+        //    _logger = logger;
+        //}
 
         [HttpPost("execute")]
         ///<summary>
@@ -46,13 +46,13 @@ namespace WPS_worder_node_1.Controllers
 
             try
             {
-                FlowExecutor flowExecutor = new FlowExecutor(_logger);
+                FlowExecutor flowExecutor = new FlowExecutor();
                 FlowExecutionResult result = await flowExecutor.ExecuteFlowAsync(flowConfig);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing request flow");
+                //_logger.LogError(ex, "Error executing request flow");
                 return StatusCode(500, new { error = "Error executing request flow", message = ex.Message });
             }
         }

@@ -25,7 +25,7 @@ namespace WPS_worder_node_1.Repositories
                 if (healthCheckModal.IsError)
                 {
                     // notify to kafka
-                    MyKafkaProducer.NotifyKafka(serverModal, healthCheckModal, false);
+                    MyKafkaProducer.NotifyKafka(serverModal, healthCheckModal, TypeOfEmail.EndpointErrorEmail);
 
                 // stop this recurrant job
                 recurringJobManager.RemoveIfExists($"");

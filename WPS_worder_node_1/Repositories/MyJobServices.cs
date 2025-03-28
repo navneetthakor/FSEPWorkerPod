@@ -30,7 +30,7 @@ namespace WPS_worder_node_1.Repositories
                 //if error then notify to kafka 
                 if(healthCheckModal.IsError)
                 {
-                    MyKafkaProducer.NotifyKafka(server, healthCheckModal,false);
+                    MyKafkaProducer.NotifyKafka(server, healthCheckModal,TypeOfEmail.EndpointErrorEmail);
                     server.Status = ServerStatus.P;
                 }
 

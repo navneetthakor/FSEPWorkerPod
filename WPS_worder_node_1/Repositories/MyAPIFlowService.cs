@@ -10,7 +10,7 @@ namespace WPS_worder_node_1.Repositories
 {
     public class MyAPIFlowService
     {
-        public static async Task InvokCheck(int client_id, int flow_id, [FromServices] ILogger _logger, [FromServices] IRecurringJobManager recurringJobManager)
+        public static async Task InvokCheck(int client_id, int flow_id, [FromServices] IRecurringJobManager recurringJobManager)
         {
             // flow Execution result (to send it to the kafka)
             FlowExecutionResult result = new FlowExecutionResult();
@@ -66,7 +66,7 @@ namespace WPS_worder_node_1.Repositories
             }
 
             //Execute  Flow
-            FlowExecutor flowExecutor = new FlowExecutor(_logger);
+            FlowExecutor flowExecutor = new FlowExecutor();
             result = await flowExecutor.ExecuteFlowAsync(flowConfig);
 
             //if errors occured during execution of this task 
@@ -92,12 +92,13 @@ namespace WPS_worder_node_1.Repositories
         /// <param name="message"></param>
         private static void InformAdmin(string? message)
         {
-            MyKafkaProducer.NotifyAdmin(message);
+            MyKafkaProducer.NotifyAdmin(message, TypeOfEmail.AdminEmail);
         }
 
         private static void NotifyUser(FlowExecutionResult result, int client_id, int flow_id, bool isError)
         {
-            MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, isError);
+            TypeOfEmail et = isError ? TypeOfEmail.APIFlowErrorEmail : TypeOfEmail.APIFlowTestEmail;
+            MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, et);
         }
 
         private static void UpdateFlowStatus(int client_id, int flow_id, string? message)

@@ -19,7 +19,7 @@ namespace WPS_worder_node_1.Repositories
 
         public void RemoveServer(int clinet_id, int server_id)
         {
-            ListOfServer.RemoveAll(x => x.Client_id == clinet_id && x.Server_id == server_id);
+            //ListOfServer.RemoveAll(x => x.Client_id == clinet_id && x.Server_id == server_id);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace WPS_worder_node_1.BL
             AllowAutoCreateTopics = true,
             Acks = Acks.All
         };
-        public static void NotifyKafka(ServerModal serverModal, HealthCheckerModal healthCheckerModal, bool isTestEmail)
+        public static void NotifyKafka(ServerModal serverModal, HealthCheckerModal healthCheckerModal, TypeOfEmail emailType)
         {
 
             using (
@@ -22,7 +22,7 @@ namespace WPS_worder_node_1.BL
                 try
                 {
                     producer.Produce("Notifier",
-                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new { serverModal, healthCheckerModal, isTestEmail }) });
+                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new { serverModal, healthCheckerModal, emailType }) });
                     Console.WriteLine($"kafka message is sent.");
                 }
                 catch (ProduceException<Null, string> e)
@@ -36,7 +36,7 @@ namespace WPS_worder_node_1.BL
 
         }
 
-        public static void NotifyKafkaAPIFlow(FlowExecutionResult result, int client_id, int flow_id, bool isError)
+        public static void NotifyKafkaAPIFlow(FlowExecutionResult result, int client_id, int flow_id, TypeOfEmail emailType)
         {
             using (
             IProducer<Null, String> producer = new ProducerBuilder<Null, string>(MyKafkaProducer.config).Build())
@@ -44,7 +44,7 @@ namespace WPS_worder_node_1.BL
                 try
                 {
                     producer.Produce("Notifier",
-                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new {result = result, client_id = client_id, flow_id = flow_id, isError = isError} )});
+                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new {result = result, client_id = client_id, flow_id = flow_id, emailType } )});
                     Console.WriteLine($"kafka message is sent.");
                 }
                 catch (ProduceException<Null, string> e)
@@ -56,7 +56,7 @@ namespace WPS_worder_node_1.BL
             }
         }
 
-        public static void NotifyAdmin(string? message)
+        public static void NotifyAdmin(string? message, TypeOfEmail emailType)
         {
 
             using (
@@ -65,7 +65,7 @@ namespace WPS_worder_node_1.BL
                 try
                 {
                     producer.Produce("Notifier",
-                        new Message<Null, string> { Value = message });
+                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new {message, emailType}) });
                     Console.WriteLine($"kafka message is sent.");
                 }
                 catch (ProduceException<Null, string> e)
@@ -78,5 +78,16 @@ namespace WPS_worder_node_1.BL
 
 
         }
+    }
+
+    public enum TypeOfEmail
+    {
+        EndpointTestEmail,
+        EndpointErrorEmail,
+        EndpointSuccessEmail,
+        APIFlowTestEmail,
+        APIFlowErrorEmail,
+        APIFlowSuccessEmail,
+        AdminEmail
     }
 }

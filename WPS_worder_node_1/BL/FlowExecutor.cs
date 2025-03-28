@@ -20,7 +20,7 @@ namespace WPS_worder_node_1.BL
         /// <summary>
         /// for logging
         /// </summary>
-        private readonly ILogger _logger;
+        //private readonly ILogger _logger;
 
         /// <summary>
         /// store data for nodes
@@ -42,9 +42,9 @@ namespace WPS_worder_node_1.BL
         /// Constructor for FlowExecutor
         /// </summary>
         /// <param name="logger"></param>
-        public FlowExecutor([FromServices] ILogger logger)
+        public FlowExecutor()
         {
-            _logger = logger;
+            //_logger = logger;
             _dataStore = new Dictionary<string, JObject>();
             _executedNodes = new HashSet<string>();
         }
@@ -68,8 +68,8 @@ namespace WPS_worder_node_1.BL
 
             try
             {
-                _logger.LogInformation("Starting flow execution with {NodeCount} nodes and {EdgeCount} edges",
-                    flowConfig.Nodes.Count, flowConfig.Edges.Count);
+                //_logger.LogInformation("Starting flow execution with {NodeCount} nodes and {EdgeCount} edges",
+                //    flowConfig.Nodes.Count, flowConfig.Edges.Count);
 
                 // Find the starting node
                 string startNodeId = FindStartNode(flowConfig);
@@ -85,14 +85,14 @@ namespace WPS_worder_node_1.BL
                 result.ExecutionTimeMs = (result.Completed - result.Started).TotalMilliseconds;
                 result.Success = !result.Errors.Any();
 
-                _logger.LogInformation("Flow execution completed in {ExecutionTimeMs}ms with {ErrorCount} errors",
-                    result.ExecutionTimeMs, result.Errors.Count);
+                //_logger.LogInformation("Flow execution completed in {ExecutionTimeMs}ms with {ErrorCount} errors",
+                //    result.ExecutionTimeMs, result.Errors.Count);
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during flow execution");
+                //_logger.LogError(ex, "Error during flow execution");
                 result.Success = false;
                 result.Errors.Add("WPS_InternalError", ex.Message);
                 result.Completed = DateTime.UtcNow;
@@ -120,11 +120,11 @@ namespace WPS_worder_node_1.BL
             FlowNode? node = flowConfig.Nodes.FirstOrDefault(n => n.Id == nodeId);
             if (node == null)
             {
-                _logger.LogWarning("Node with ID {NodeId} not found in flow configuration", nodeId);
+                //_logger.LogWarning("Node with ID {NodeId} not found in flow configuration", nodeId);
                 return;
             }
 
-            _logger.LogInformation("Executing node: {NodeName} ({NodeType})", node.Name, node.Type);
+            //_logger.LogInformation("Executing node: {NodeName} ({NodeType})", node.Name, node.Type);
 
             try
             {
@@ -158,7 +158,7 @@ namespace WPS_worder_node_1.BL
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing node {NodeId}: {NodeName}", node.Id, node.Name);
+                //_logger.LogError(ex, "Error executing node {NodeId}: {NodeName}", node.Id, node.Name);
                 result.Errors[nodeId] = ex.Message;
                 result.Success = false;
 
@@ -223,7 +223,7 @@ namespace WPS_worder_node_1.BL
             }
 
             //send request now 
-            _logger.LogInformation("Sending {Method} request to {Url}", method, url);
+            //_logger.LogInformation("Sending {Method} request to {Url}", method, url);
             RestResponse response = await client.ExecuteAsync(request);
 
             // Process response
@@ -248,13 +248,13 @@ namespace WPS_worder_node_1.BL
 
             if (response.ErrorException != null)
             {
-                _logger.LogError(response.ErrorException, "Error in request to {Url}: {ErrorMessage}", url, response.ErrorMessage);
+                //_logger.LogError(response.ErrorException, "Error in request to {Url}: {ErrorMessage}", url, response.ErrorMessage);
                 throw new Exception($"Request failed: {response.ErrorMessage}", response.ErrorException);
             }
 
             if ((int)response.StatusCode >= 400)
             {
-                _logger.LogWarning("Request to {Url} returned status code {StatusCode}", url, (int)response.StatusCode);
+                //_logger.LogWarning("Request to {Url} returned status code {StatusCode}", url, (int)response.StatusCode);
             }
 
             return responseData;
@@ -275,7 +275,7 @@ namespace WPS_worder_node_1.BL
             // For now, we'll handle some common condition patterns
             bool result = false;
 
-            _logger.LogInformation("Evaluating condition: {Condition}", condition);
+            //_logger.LogInformation("Evaluating condition: {Condition}", condition);
 
             try
             {
@@ -316,11 +316,11 @@ namespace WPS_worder_node_1.BL
                     }
                 }
 
-                _logger.LogInformation("Condition evaluated to: {Result}", result);
+                //_logger.LogInformation("Condition evaluated to: {Result}", result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error evaluating condition: {Condition}", condition);
+                //_logger.LogError(ex, "Error evaluating condition: {Condition}", condition);
                 throw new Exception($"Error evaluating condition: {ex.Message}", ex);
             }
 
@@ -338,7 +338,7 @@ namespace WPS_worder_node_1.BL
                 throw new ArgumentException("Transform expression is required for TRANSFORM node");
             }
 
-            _logger.LogInformation("Executing transform");
+            //_logger.LogInformation("Executing transform");
 
             try
             {
@@ -379,7 +379,7 @@ namespace WPS_worder_node_1.BL
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing transform");
+                //_logger.LogError(ex, "Error executing transform");
                 throw new Exception($"Error executing transform: {ex.Message}", ex);
             }
         }
