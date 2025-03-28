@@ -1,0 +1,6 @@
+@WPS_worder_node_1_HostAddress = http://localhost:5150
+
+GET {{WPS_worder_node_1_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
