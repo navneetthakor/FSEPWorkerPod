@@ -177,7 +177,7 @@ namespace WPS_worder_node_1.Controllers
         }
 
         [HttpPost]
-        [Route("v2/RegisterAPIFlow")]
+        [Route("RegisterAPIFlow")]
         public async Task<Response> RegisterAPIFlow2(int client_id, int flow_id, [FromServices] IRecurringJobManager recurringJobManager)
         {
             try
@@ -195,7 +195,7 @@ namespace WPS_worder_node_1.Controllers
                 RestResponse rr = client.Execute(request);
 
                 //checked if body present or not 
-                if (rr?.Content == null)
+                if (rr == null || rr?.Content == null)
                 {
                     //deserializing the response
                     return new Response() { IsError = true, ErrorMessage = "Error while communicating with user management service to get flow configuration data." };
@@ -251,7 +251,7 @@ namespace WPS_worder_node_1.Controllers
 
 
         [HttpPost]
-        [Route("RegisterAPIFlow")]
+        [Route("v2/RegisterAPIFlow")]
         public async Task<Response> RegisterAPIFlow(int client_id, int flow_id, [FromBody] FlowConfiguration flowConfig, [FromServices] IRecurringJobManager recurringJobManager)
         {
             try
