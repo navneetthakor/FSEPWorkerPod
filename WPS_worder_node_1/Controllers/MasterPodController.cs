@@ -80,7 +80,7 @@ namespace WPS_worder_node_1.Controllers
         ///<summary>
         /// Register server to the server
         /// </summary>
-        public async Task<Response> RegisterServer([FromServices] IRecurringJobManager recurringJobManager, [FromBody] ServerModal serverModal)
+        public async Task<Response> RegisterServer([FromServices] IRecurringJobManager recurringJobManager, [FromServices] MySingleEndpointService mse,  [FromBody] ServerModal serverModal)
         {
             try
             {
@@ -103,7 +103,7 @@ namespace WPS_worder_node_1.Controllers
                     MyKafkaProducer.NotifyKafka(serverModal, healthChecker, TypeOfEmail.EndpointTestEmail);
 
                     // setup hangfire recurring job
-                    recurringJobManager.AddOrUpdate($"job_{serverModal.Client_id}&server_{serverModal.Server_id}", () => MySingleEndpointService.InvokCheck(serverModal, recurringJobManager), CronInterval.getCronInterval.GetValueOrDefault(serverModal.CheckFrequency));
+                    recurringJobManager.AddOrUpdate($"job_{serverModal.Client_id}&server_{serverModal.Server_id}", () => mse.InvokCheck(serverModal), CronInterval.getCronInterval.GetValueOrDefault(serverModal.CheckFrequency));
                 }
 
                 //preparing Response 
@@ -139,13 +139,13 @@ namespace WPS_worder_node_1.Controllers
 
 
         [HttpDelete]
-        [Route("remove/{client_id}/{server_id}")]
-        public Response RemoveServer(IServerListRepo serverlistRepo, int client_id, int server_id)
+        [Route("removeServer/{client_id}/{server_id}")]
+        public Response RemoveServer([FromServices] IRecurringJobManager recurringJobManager, string client_id, string server_id)
         {
             try
             {
                 // remove server from serverListRepo
-                serverlistRepo.RemoveServer(client_id, server_id);
+                recurringJobManager.RemoveIfExists($"job_{client_id}&server_{server_id}");
 
                 //preparing Response 
                 Response response = new Response()

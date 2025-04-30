@@ -24,7 +24,7 @@ namespace WPS_worder_node_1.BL
             // Move pusher here (after defining registry & metrics)
             MetricPusher pusher = new MetricPusher(new MetricPusherOptions
             {
-                Endpoint = "http://localhost:9093",
+                Endpoint = "http://localhost:9091",
                 Job = $"{Clinet_id}",
                 Instance = $"{Server_id}",
                 CollectorRegistry = registry

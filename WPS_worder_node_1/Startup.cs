@@ -26,7 +26,7 @@ namespace WPS_worder_node_1
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
-            string connectionString = "server=localhost;database=hangfire_db;uid=root;pwd=N@vneet2810;Allow User Variables=True"; // Connection string to the database
+            string connectionString = "server=localhost;database=wps_hangfire_db;uid=root;pwd=gs@123;Allow User Variables=True"; // Connection string to the database
 
             // 1. Configure Hangfire storage (e.g., SQL Server, Redis)
             services.AddHangfire(configuration => configuration
@@ -42,7 +42,8 @@ namespace WPS_worder_node_1
             services.AddSingleton<IServerListRepo, ServerListRepo>();
             services.AddSingleton<IMyJobServices, MyJobServices>();
             services.AddSingleton<IHeartBitService, HeartBitService>();
-            
+            services.AddTransient<MySingleEndpointService>();
+
         }
 
         public void Configure(WebApplication app, IWebHostEnvironment env, IRecurringJobManager recurringJobManager)
@@ -53,7 +54,7 @@ namespace WPS_worder_node_1
 
             //Schedule a recurring job that sends a heartbeat
             IHeartBitService heartBitService = app.Services.GetRequiredService<IHeartBitService>();
-            recurringJobManager.AddOrUpdate("HeartBit", () => heartBitService.HeartBit(), Cron.Minutely);
+            recurringJobManager.AddOrUpdate("WorkerHeartBeat", () => heartBitService.HeartBit(), Cron.Minutely);
 
             if (env.IsDevelopment())
             {

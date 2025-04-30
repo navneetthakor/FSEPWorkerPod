@@ -9,15 +9,16 @@ namespace WPS_worder_node_1.Repositories
 {
     public class MySingleEndpointService
     {
-        public static void InvokCheck(ServerModal serverModal, [FromServices] IRecurringJobManager recurringJobManager)
+        private readonly IRecurringJobManager recurringJobManager;
+
+        public MySingleEndpointService(IRecurringJobManager recurringJobManager)
+        {
+            this.recurringJobManager = recurringJobManager;
+        }
+        public void InvokCheck(ServerModal serverModal)
         {
             Console.WriteLine("Invoking MySingleEndpointService HealthCheck");
             
-                //check if this server is already under recovery 
-                if (serverModal.Status == ServerStatus.P)
-                {
-                    return;
-                }
 
                 //check it's health
                 HealthCheckerModal healthCheckModal = HealthChecker.CheckHealthAsync(serverModal).GetAwaiter().GetResult();
@@ -28,12 +29,14 @@ namespace WPS_worder_node_1.Repositories
                     MyKafkaProducer.NotifyKafka(serverModal, healthCheckModal, TypeOfEmail.EndpointErrorEmail);
 
                 // stop this recurrant job
-                recurringJobManager.RemoveIfExists($"");
+                recurringJobManager.RemoveIfExists($"job_{serverModal.Client_id}&server_{serverModal.Server_id}");
                     // 
                     
                 }
-                // if no error then push metrics to pushgateway
-                MyMatricsPusher.PushMetrics(serverModal.Client_id, serverModal.Server_id, healthCheckModal);
+
+                Console.WriteLine($"Server {serverModal.Server_id} is healthy");
+            // if no error then push metrics to pushgateway
+            MyMatricsPusher.PushMetrics(serverModal.Client_id, serverModal.Server_id, healthCheckModal);
             }
         }
     }

@@ -2,15 +2,18 @@
 {
     public enum ServerStatus
     {
-        /// <summary>
-        /// Push,
-        /// </summary>
-        P,
 
         /// <summary>
         /// Running,
         /// </summary>
         R,
+
+
+        /// <summary>
+        /// Push,
+        /// </summary>
+        P,
+
 
         /// <summary>
         /// Destroed,
