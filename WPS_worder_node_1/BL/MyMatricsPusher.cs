@@ -25,8 +25,8 @@ namespace WPS_worder_node_1.BL
             MetricPusher pusher = new MetricPusher(new MetricPusherOptions
             {
                 Endpoint = "http://localhost:9091",
-                Job = $"{Clinet_id}",
-                Instance = $"{Server_id}",
+                Job = $"{Server_id}",
+                Instance = $"{Clinet_id}",
                 CollectorRegistry = registry
             });
 
