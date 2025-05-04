@@ -36,7 +36,7 @@ namespace WPS_worder_node_1.BL
 
         }
 
-        public static void NotifyKafkaAPIFlow(FlowExecutionResult result, int client_id, int flow_id, TypeOfEmail emailType)
+        public static void NotifyKafkaAPIFlow(FlowExecutionResult result, string client_id, string flow_id, TypeOfEmail emailType)
         {
             using (
             IProducer<Null, String> producer = new ProducerBuilder<Null, string>(MyKafkaProducer.config).Build())

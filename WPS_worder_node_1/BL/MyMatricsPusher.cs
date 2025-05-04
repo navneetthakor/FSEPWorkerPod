@@ -39,6 +39,8 @@ namespace WPS_worder_node_1.BL
             pusher.PushAsync().GetAwaiter();
             Console.WriteLine("Metrics pushed");
         }
+
+
     }
 }
 

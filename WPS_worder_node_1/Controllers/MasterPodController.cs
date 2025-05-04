@@ -169,6 +169,38 @@ namespace WPS_worder_node_1.Controllers
             }
         }
 
+
+        [HttpDelete]
+        [Route("removeAPIFlow/{client_id}/{flow_id}")]
+        public Response RemoveAPIFlow([FromServices] IRecurringJobManager recurringJobManager, string client_id, string flow_id)
+        {
+            try
+            {
+                // remove server from serverListRepo
+                recurringJobManager.RemoveIfExists($"job_{client_id}&flow_{flow_id}");
+
+                //preparing Response 
+                Response response = new Response()
+                {
+                    StatusCode = 200,
+                    IsError = false,
+                    ErrorMessage = "Server removed successfully"
+                };
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Response response = new Response()
+                {
+                    StatusCode = 500,
+                    IsError = true,
+                    ErrorMessage = ex.Message
+                };
+                return response;
+            }
+        }
+
         [HttpGet]
         [Route("getHeartBit")]
         public Response GetHeartBit()
@@ -177,19 +209,17 @@ namespace WPS_worder_node_1.Controllers
         }
 
         [HttpPost]
-        [Route("RegisterAPIFlow")]
-        public async Task<Response> RegisterAPIFlow2(int client_id, int flow_id, [FromServices] IRecurringJobManager recurringJobManager)
+        [Route("registerAPIFlow/{client_id}/{flow_id}")]
+        public async Task<Response> RegisterAPIFlow2(string client_id, string flow_id, [FromServices] IRecurringJobManager recurringJobManager)
         {
             try
             {
                 // make request to the userManagement module to get the flow configuration
                 //create restClient
-                RestClient client = new RestClient("http://localhost:5004/");
+                RestClient client = new RestClient("http://localhost:5002/");
 
                 //preparing request to register server 
-                RestRequest request = new RestRequest("api/flow/getFlow", Method.Get);
-                request.AddQueryParameter("client_id", client_id.ToString());
-                request.AddQueryParameter("flow_id", flow_id.ToString());
+                RestRequest request = new RestRequest($"apiFlow/getInfo/{client_id}/{flow_id}", Method.Get);
 
                 //executing request
                 RestResponse rr = client.Execute(request);
@@ -202,7 +232,7 @@ namespace WPS_worder_node_1.Controllers
                 }
                 NodeResponse? nr = JsonConvert.DeserializeObject<NodeResponse>(rr.Content);
 
-                FlowConfiguration? flowConfig = nr?.Data;
+                FlowConfiguration? flowConfig = nr?.Data.ToObject<FlowConfiguration>();
 
                 //check if flowConfig is valid or not
                 if (flowConfig == null || flowConfig.Nodes == null || flowConfig.Edges == null)
@@ -252,7 +282,7 @@ namespace WPS_worder_node_1.Controllers
 
         [HttpPost]
         [Route("v2/RegisterAPIFlow")]
-        public async Task<Response> RegisterAPIFlow(int client_id, int flow_id, [FromBody] FlowConfiguration flowConfig, [FromServices] IRecurringJobManager recurringJobManager)
+        public async Task<Response> RegisterAPIFlow(string client_id, string flow_id, [FromBody] FlowConfiguration flowConfig, [FromServices] IRecurringJobManager recurringJobManager)
         {
             try
             {

@@ -10,27 +10,25 @@ namespace WPS_worder_node_1.Repositories
 {
     public class MyAPIFlowService
     {
-        public static async Task InvokCheck(int client_id, int flow_id, [FromServices] IRecurringJobManager recurringJobManager)
+        public static async Task InvokCheck(string client_id, string flow_id, [FromServices] IRecurringJobManager recurringJobManager)
         {
             // flow Execution result (to send it to the kafka)
             FlowExecutionResult result = new FlowExecutionResult();
 
             // make request to the userManagement module to get the flow configuration
             //create restClient
-            RestClient client = new RestClient("http://localhost:5004/");
+            RestClient client = new RestClient("http://localhost:5002/");
 
             //preparing request to register server 
-            RestRequest request = new RestRequest("api/flow/getFlow", Method.Get);
-            request.AddQueryParameter("client_id", client_id.ToString());
-            request.AddQueryParameter("flow_id", flow_id.ToString());
+            RestRequest request = new RestRequest($"apiFlow/getInfo/{client_id}/{flow_id}", Method.Get);
 
             //executing request
             RestResponse rr = client.Execute(request);
 
             //checked if body present or not 
-            if (rr == null || rr?.Content == null)
+            if (rr == null || rr.Content == null)
             {
-                //deserializing the response
+                //adding errors
                 result.Errors.Add("usrMngRqstErr", "Error while communicating with user management service to get flow configuration data.");
 
                 // notify to user
@@ -44,7 +42,21 @@ namespace WPS_worder_node_1.Repositories
 
             //Extract flow Configuration object
             NodeResponse? nr = JsonConvert.DeserializeObject<NodeResponse>(rr.Content);
-            FlowConfiguration? flowConfig = nr?.Data;
+            FlowConfiguration? flowConfig = nr?.Data.ToObject<FlowConfiguration>();
+
+            //check if error occurred at user-management module side 
+            if (nr == null || nr.IsError)
+            {
+                //Adding errors
+                result.Errors.Add("usrMngRqstErr", "Error while communicating with user management service to get flow configuration data.");
+
+                // notify to user
+                NotifyUser(result, client_id, flow_id, true);
+
+                // notify to admin
+                InformAdmin("\"Error while communicating with user management service to get flow configuration data.\"");
+                return;
+            }
 
             //check if flowConfig is valid or not
             if (flowConfig == null || flowConfig.Nodes == null || flowConfig.Edges == null)
@@ -95,13 +107,13 @@ namespace WPS_worder_node_1.Repositories
             MyKafkaProducer.NotifyAdmin(message, TypeOfEmail.AdminEmail);
         }
 
-        private static void NotifyUser(FlowExecutionResult result, int client_id, int flow_id, bool isError)
+        private static void NotifyUser(FlowExecutionResult result, string client_id, string flow_id, bool isError)
         {
             TypeOfEmail et = isError ? TypeOfEmail.APIFlowErrorEmail : TypeOfEmail.APIFlowTestEmail;
             MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, et);
         }
 
-        private static void UpdateFlowStatus(int client_id, int flow_id, string? message)
+        private static void UpdateFlowStatus(string client_id, string flow_id, string? message)
         {
             //create restClient
             RestClient client = new RestClient("http://localhost:5004/");

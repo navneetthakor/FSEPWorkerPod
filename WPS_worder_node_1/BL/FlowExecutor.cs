@@ -680,8 +680,8 @@ namespace WPS_worder_node_1.BL
         public DateTime Started { get; set; }
         public DateTime Completed { get; set; }
         public double ExecutionTimeMs { get; set; }
-        public List<string> ExecutedNodes { get; set; }
-        public Dictionary<string, object> NodeResults { get; set; }
-        public Dictionary<string, string> Errors { get; set; }
+        public List<string> ExecutedNodes { get; set; } = new List<string>();
+        public Dictionary<string, object> NodeResults { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, string> Errors { get; set; } = new Dictionary<string, string>();
     }
 }
