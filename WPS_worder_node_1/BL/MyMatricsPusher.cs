@@ -21,10 +21,13 @@ namespace WPS_worder_node_1.BL
 
         public static void PushMetrics(string Clinet_id, string Server_id, HealthCheckerModal healthCheckModal)
         {
+            //get env variable 
+            string? pushGateWay_URL = Environment.GetEnvironmentVariable("pushGateWay_URL");
+
             // Move pusher here (after defining registry & metrics)
             MetricPusher pusher = new MetricPusher(new MetricPusherOptions
             {
-                Endpoint = "http://localhost:9091",
+                Endpoint = $"{pushGateWay_URL}",
                 Job = $"{Server_id}",
                 Instance = $"{Clinet_id}",
                 CollectorRegistry = registry

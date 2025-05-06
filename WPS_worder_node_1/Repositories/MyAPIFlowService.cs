@@ -115,8 +115,12 @@ namespace WPS_worder_node_1.Repositories
 
         private static void UpdateFlowStatus(string client_id, string flow_id, FlowExecutionResult flowExecutionResult)
         {
+
+            //get env variable 
+            string? user_management_URL = Environment.GetEnvironmentVariable("user_management_URL");
+
             //create restClient
-            RestClient client = new RestClient("http://localhost:5002/");
+            RestClient client = new RestClient($"{user_management_URL}");
             //preparing request to register server 
             RestRequest request = new RestRequest($"apiFlow/updateFlowStatus/{client_id}/{flow_id}", Method.Put);
             request.AddJsonBody(JsonConvert.SerializeObject(flowExecutionResult));

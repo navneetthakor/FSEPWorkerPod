@@ -46,8 +46,13 @@ namespace WPS_worder_node_1.Repositories
 
         private static void UpdateFlowStatus(string client_id, string server_id, string? message)
         {
+            //get env variable 
+            string? user_management_URL = Environment.GetEnvironmentVariable("user_management_URL");
+
             //create restClient
-            RestClient client = new RestClient("http://localhost:5002/");
+            // make request to the userManagement module to get the flow configuration
+
+            RestClient client = new RestClient($"{user_management_URL}");
             //preparing request to register server 
             RestRequest request = new RestRequest($"Server/pushServer/{client_id}/{server_id}", Method.Put);
 
