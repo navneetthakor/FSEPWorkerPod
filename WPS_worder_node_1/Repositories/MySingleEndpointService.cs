@@ -47,20 +47,17 @@ namespace WPS_worder_node_1.Repositories
         private static void UpdateFlowStatus(string client_id, string server_id, string? message)
         {
             //create restClient
-            RestClient client = new RestClient("http://localhost:5004/");
+            RestClient client = new RestClient("http://localhost:5002/");
             //preparing request to register server 
-            RestRequest request = new RestRequest("api/flow/updateFlowStatus", Method.Put);
-            request.AddQueryParameter("client_id", client_id);
-            request.AddQueryParameter("flow_id", server_id);
-            request.AddQueryParameter("status", message);
+            RestRequest request = new RestRequest($"Server/pushServer/{client_id}/{server_id}", Method.Put);
 
             //executing request
             RestResponse? rr = client.Execute(request);
 
-            Response? response = JsonConvert.DeserializeObject<Response>(rr?.Content);
+            //Response? response = JsonConvert.DeserializeObject<Response>(rr?.Content);
 
             //checked if body present or not 
-            if (rr == null || rr.Content == null || response == null || response.IsError)
+            if (rr == null || rr.Content == null)
             {
                 // notify to admin
                 InformAdmin("\"Error while communicating with user management service to get flow configuration data.\"");

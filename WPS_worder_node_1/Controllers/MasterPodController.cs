@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WPS_worder_node_1.BL;
 using WPS_worder_node_1.Modal;
 using System.Data;
@@ -9,7 +8,6 @@ using WPS_worder_node_1.Repositories;
 using WPS_worder_node_1.Modal.Enums;
 using RestSharp;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace WPS_worder_node_1.Controllers
 {
@@ -248,7 +246,7 @@ namespace WPS_worder_node_1.Controllers
                 if (result.Errors.Count > 0)
                 {
                     //report to user through kafka
-                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, TypeOfEmail.APIFlowErrorEmail);
+                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flowConfig.ApiFlowName, TypeOfEmail.APIFlowErrorEmail);
 
                     return new Response() { IsError = true, ErrorMessage = "Error executing request flow" };
                 }
@@ -258,7 +256,7 @@ namespace WPS_worder_node_1.Controllers
                     recurringJobManager.AddOrUpdate($"job_{client_id}&flow_{flow_id}", () => MyAPIFlowService.InvokCheck(client_id, flow_id, recurringJobManager), CronInterval.getCronInterval.GetValueOrDefault(flowConfig.CheckFrequency));
 
                     // send test notification
-                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, TypeOfEmail.APIFlowTestEmail);
+                    MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flowConfig.ApiFlowName, TypeOfEmail.APIFlowTestEmail);
 
                 }
 

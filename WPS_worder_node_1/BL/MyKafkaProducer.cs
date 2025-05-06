@@ -22,7 +22,7 @@ namespace WPS_worder_node_1.BL
                 try
                 {
                     producer.Produce("Notifier",
-                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new { serverModal, healthCheckerModal, emailType }) });
+                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new { serverModal = serverModal, healthCheckerModal = healthCheckerModal, emailType = emailType }) });
                     Console.WriteLine($"kafka message is sent.");
                 }
                 catch (ProduceException<Null, string> e)
@@ -36,15 +36,20 @@ namespace WPS_worder_node_1.BL
 
         }
 
-        public static void NotifyKafkaAPIFlow(FlowExecutionResult result, string client_id, string flow_id, TypeOfEmail emailType)
+        public static void NotifyKafkaAPIFlow(FlowExecutionResult result, string client_id, string flow_name, TypeOfEmail emailType)
         {
             using (
             IProducer<Null, String> producer = new ProducerBuilder<Null, string>(MyKafkaProducer.config).Build())
             {
                 try
                 {
+                    ServerModal sm = new ServerModal()
+                    {
+                        Client_id = client_id,
+                        Api_flow_name = flow_name,
+                    };
                     producer.Produce("Notifier",
-                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new {result = result, client_id = client_id, flow_id = flow_id, emailType } )});
+                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new { serverModal = sm, flowExecutionResult = result, emailType= emailType } )});
                     Console.WriteLine($"kafka message is sent.");
                 }
                 catch (ProduceException<Null, string> e)
@@ -65,7 +70,7 @@ namespace WPS_worder_node_1.BL
                 try
                 {
                     producer.Produce("Notifier",
-                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new {message, emailType}) });
+                        new Message<Null, string> { Value = JsonConvert.SerializeObject(new { message = message, emailType = emailType}) });
                     Console.WriteLine($"kafka message is sent.");
                 }
                 catch (ProduceException<Null, string> e)

@@ -32,7 +32,7 @@ namespace WPS_worder_node_1.Repositories
                 result.Errors.Add("usrMngRqstErr", "Error while communicating with user management service to get flow configuration data.");
 
                 // notify to user
-                NotifyUser(result, client_id, flow_id, true);
+                //NotifyUser(result, client_id, flow_id, true);
 
                 // notify to admin
                 InformAdmin("\"Error while communicating with user management service to get flow configuration data.\"");
@@ -51,7 +51,7 @@ namespace WPS_worder_node_1.Repositories
                 result.Errors.Add("usrMngRqstErr", "Error while communicating with user management service to get flow configuration data.");
 
                 // notify to user
-                NotifyUser(result, client_id, flow_id, true);
+                NotifyUser(result, client_id, flowConfig.ApiFlowName, true);
 
                 // notify to admin
                 InformAdmin("\"Error while communicating with user management service to get flow configuration data.\"");
@@ -64,13 +64,13 @@ namespace WPS_worder_node_1.Repositories
                 result.Errors.Add("EmptyFlowConfig", "Improper flow configuration encounterd. Either flowConfig or flowConfig.Nodes or flowConfig.Edges are empty");
 
                 // notify to user
-                NotifyUser(result, client_id, flow_id, true);
+                NotifyUser(result, client_id, flowConfig.ApiFlowName, true);
 
                 // notify to admin
                 InformAdmin("Improper flow configuration encounterd. Either flowConfig or flowConfig.Nodes or flowConfig.Edges are empty");
 
                 // update status of flow in the userManagmenet modal
-                UpdateFlowStatus(client_id, flow_id, "Error");
+                UpdateFlowStatus(client_id, flow_id, result);
 
                 //stop recurent job
                 recurringJobManager.RemoveIfExists($"job_{client_id}&flow_{flow_id}");
@@ -86,10 +86,10 @@ namespace WPS_worder_node_1.Repositories
             {
 
                 //notify to user
-                NotifyUser(result, client_id, flow_id, true);
+                NotifyUser(result, client_id, flowConfig.ApiFlowName, true);
 
                 // update status of flow in the userManagmenet modal
-                UpdateFlowStatus(client_id, flow_id, "Error");
+                UpdateFlowStatus(client_id, flow_id, result);
 
                 //stop recurent job
                 recurringJobManager.RemoveIfExists($"job_{client_id}&flow_{flow_id}");
@@ -107,21 +107,19 @@ namespace WPS_worder_node_1.Repositories
             MyKafkaProducer.NotifyAdmin(message, TypeOfEmail.AdminEmail);
         }
 
-        private static void NotifyUser(FlowExecutionResult result, string client_id, string flow_id, bool isError)
+        private static void NotifyUser(FlowExecutionResult result, string client_id, string flow_name, bool isError)
         {
             TypeOfEmail et = isError ? TypeOfEmail.APIFlowErrorEmail : TypeOfEmail.APIFlowTestEmail;
-            MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_id, et);
+            MyKafkaProducer.NotifyKafkaAPIFlow(result, client_id, flow_name, et);
         }
 
-        private static void UpdateFlowStatus(string client_id, string flow_id, string? message)
+        private static void UpdateFlowStatus(string client_id, string flow_id, FlowExecutionResult flowExecutionResult)
         {
             //create restClient
-            RestClient client = new RestClient("http://localhost:5004/");
+            RestClient client = new RestClient("http://localhost:5002/");
             //preparing request to register server 
-            RestRequest request = new RestRequest("api/flow/updateFlowStatus", Method.Put);
-            request.AddQueryParameter("client_id", client_id.ToString());
-            request.AddQueryParameter("flow_id", flow_id.ToString());
-            request.AddQueryParameter("status", message);
+            RestRequest request = new RestRequest($"apiFlow/updateFlowStatus/{client_id}/{flow_id}", Method.Put);
+            request.AddJsonBody(JsonConvert.SerializeObject(flowExecutionResult));
 
             //executing request
             RestResponse rr = client.Execute(request);

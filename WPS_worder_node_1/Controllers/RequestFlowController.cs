@@ -66,8 +66,11 @@ namespace WPS_worder_node_1.Controllers
         [JsonProperty("edges")]
         public List<FlowEdge> Edges { get; set; }
 
-        [JsonProperty("checkFrequency")]
+        [JsonProperty("check_frequency")]
         public CheckFrequency CheckFrequency { get; set; }
+
+        [JsonProperty("api_flow_name")]
+        public string ApiFlowName { get; set; }
     }
 
     public class FlowNode
