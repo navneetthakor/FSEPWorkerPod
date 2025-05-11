@@ -285,11 +285,13 @@ namespace WPS_worder_node_1.BL
                 // Simplified condition evaluation logic
                 if (processedCondition.Contains("==="))
                 {
-                    var parts = processedCondition.Split("===", StringSplitOptions.TrimEntries);
-                    if (parts.Length == 2)
-                    {
-                        result = string.Equals(parts[0].Trim('"', '\''), parts[1].Trim('"', '\''));
-                    }
+                    string[] splitedArry = processedCondition.Split("===");
+                    string? value1 = splitedArry[0].Split(".").Length > 1 ? ExtractConditionValue(splitedArry[0]) : splitedArry[0];
+                    string? value2 = splitedArry[1].Split(".").Length > 1 ? ExtractConditionValue(splitedArry[1]) : splitedArry[1];
+                    value1 = value1 == null ? "" : value1;
+                    value2 = value2 == null ? "" : value2;
+                    result = string.Equals(value1.Trim('"', '\''), value2.Trim('"', '\''));
+                    
                 }
                 else if (processedCondition.Contains("!=="))
                 {
@@ -328,6 +330,19 @@ namespace WPS_worder_node_1.BL
             _dataStore[$"{node.Id}_result"] = new JObject { ["value"] = result };
 
             return result;
+        }
+
+        private string? ExtractConditionValue(string condition)
+        {
+            string[] parts = condition.Split(".");
+            if (parts.Length <= 1)
+                return "";
+            else if(parts.Length >= 2)
+            {
+                string? value = (string?)_dataStore[parts[0]]?.SelectToken(string.Join(".", parts.Skip(1)));
+                return (value == null ? "" : value);
+            }
+            return "";
         }
 
         private async Task<object> ExecuteTransformNodeAsync(FlowNode node)

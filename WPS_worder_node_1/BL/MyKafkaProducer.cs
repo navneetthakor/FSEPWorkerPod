@@ -8,11 +8,11 @@ namespace WPS_worder_node_1.BL
     public class MyKafkaProducer
     {
         //get env variable 
-        static string? pushGateWay_URL = Environment.GetEnvironmentVariable("pushGateWay_URL");
+        static string? kafka_Bootstrap_server = Environment.GetEnvironmentVariable("kafka_Bootstrap_server");
         private static ProducerConfig config { get; } = new ProducerConfig
         {
             
-            BootstrapServers = $"{pushGateWay_URL}",
+            BootstrapServers = $"{kafka_Bootstrap_server}",
             AllowAutoCreateTopics = true,
             Acks = Acks.All
         };
